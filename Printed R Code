@@ -1,0 +1,62 @@
+Bar Graph Code :
+
+library(ggplot2)
+library(dplyr)
+data <- read.csv("game_goals.csv")
+data$gameWinningGoal <- as.factor(data$gameWinningGoal)
+data$emptyNet <- as.factor(data$emptyNet)
+
+# Create a target variable 'gameOutcome' for win (1) or loss (0)
+data$gameOutcome <- ifelse(data$gameWinningGoal == "TRUE", 1, 0)
+
+data_clean <- na.omit(data)
+
+data_clean <- data_clean %>%
+  select(gameOutcome, strength, emptyNet)
+
+ggplot(data_clean, aes(x = strength, fill = factor(gameOutcome))) +
+  geom_bar(position = "dodge") +
+  labs(title = "Game Outcome by Play Situation (Strength)",
+       x = "Play Situation (Strength)",
+       y = "Count",
+       fill = "Game Outcome (1 = Win, 0 = Loss)") +
+  theme_minimal()
+
+Regression Model Code :
+
+library(ggplot2)
+library(dplyr)
+data <- read.csv("/Users/spksmart04/s/game_goals.csv")
+
+data_clean <- data %>%
+  select(play_id, strength, gameWinningGoal, emptyNet)
+
+data_clean <- na.omit(data_clean)  # Remove rows with NA values (optional)
+
+# Convert 'gameWinningGoal' to a binary factor (1 = Game Winning Goal, 0 = Otherwise)
+data_clean$gameWinningGoal <- as.factor(ifelse(data_clean$gameWinningGoal == 1, 1, 0))
+
+data_clean$strength <- as.factor(data_clean$strength)
+
+logit_model <- glm(gameWinningGoal ~ strength + emptyNet, data = data_clean, family = binomial)
+
+summary(logit_model)
+
+
+data_clean$predicted_probabilities <- predict(logit_model, type = "response")
+
+# Convert probabilities to binary predictions
+data_clean$predicted_class <- ifelse(data_clean$predicted_probabilities > 0.5, 1, 0)
+
+
+table(data_clean$gameWinningGoal, data_clean$predicted_class)
+
+ggplot(data_clean, aes(x = emptyNet, y = predicted_probabilities, color = gameWinningGoal)) +
+  geom_point(size = 4) +
+  labs(title = "Predicted Probabilities of Game-Winning Goal", 
+       x = "Empty Net", 
+       y = "Predicted Probability", 
+       color = "Actual Game Winning Goal") +
+  theme_minimal()
+
+
